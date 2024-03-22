@@ -32,6 +32,7 @@ def animate(step):
     ax1.grid(True)
 
 ani = FuncAnimation(fig1, animate, frames=time, interval=1)
+ani.save('uav_animation.gif', writer='pillow', fps=45)
 
 fig2, ax2 = plt.subplots()
 for i in range(numUAVs):
@@ -42,7 +43,7 @@ ax2.set_xlabel('Time')
 ax2.grid(True)
 
 plt.show()
-ani.save('uav_animation.gif', writer='pillow', fps=45)
+
 
 
 
