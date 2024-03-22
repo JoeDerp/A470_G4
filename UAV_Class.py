@@ -2,13 +2,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 class UAV:
-    def __init__(self,x,v,w,phi_p,phi_g):
+    def __init__(self,x,v,w,phi_p,phi_g,fov):
         self.x = x
         self.v = v
         self.w = w
         self.p = [0,0] # initial best postion of UAV is home position
         self.phi_p = phi_p
         self.phi_g = phi_g
+        self.fov = 0
 
 class Environment:
 # Environment represents the scanable area where UAVs will search for target
@@ -21,12 +22,13 @@ class Environment:
         self.target = [np.random.uniform(self.xRange[0],self.xRange[1]),np.random.uniform(self.yRange[0],self.yRange[1])]
         self.g = [np.random.uniform(self.xRange[0],self.xRange[1]),np.random.uniform(self.yRange[0],self.yRange[1])] 
         self.UAVs = []
+        self.targetFound = False
     
-    def initUAVs(self, numUAVs):
+    def initUAVs(self, numUAVs,fov):
         for i in range(numUAVs):
             angle = ((2*np.pi)/numUAVs)*i
             v_i = [np.cos(angle),np.sin(angle)]
-            self.UAVs.append(UAV([0,0],v_i,0.8,0.2,0.2))
+            self.UAVs.append(UAV([0,0],v_i,0.8,0.2,0.2,fov))
 
     def updatePos(self):
         for uav in self.UAVs:
@@ -44,10 +46,17 @@ class Environment:
 
     def updateValue(self):
         for uav in self.UAVs:
-            if dist(uav.x,self.target) < dist(uav.p,self.target):
-                uav.p = uav.x
-            if dist(uav.p,self.target) < dist(self.g,self.target):
-                self.g = uav.p
+            if not self.targetFound:
+                if dist(uav.x,self.target) <= uav.fov:
+                    self.targetFound = True
+                    print('Target Found')
+                    uav.p = uav.x
+                    uav.g = uav.p
+            else:
+                if dist(uav.x,self.target) < dist(uav.p,self.target):
+                    uav.p = uav.x
+                if dist(uav.p,self.target) < dist(self.g,self.target):
+                    self.g = uav.p
         return self
     
 def dist(s,o):

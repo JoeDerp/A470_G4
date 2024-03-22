@@ -7,7 +7,8 @@ w = 1500 # search area's width
 numUAVs = 15
 search = UAV.Environment(h,w)
 search.initUAVs(numUAVs)
-time = 500
+time = w
+fov = 2
 
 fig1, ax1 = plt.subplots()
 def animate(step):
@@ -15,7 +16,7 @@ def animate(step):
     ax1.plot(search.target[0],search.target[1],'r*')
     for uav in search.UAVs:
         ax1.plot(uav.x[0], uav.x[1], 'bd')
-    if step <= 100:
+    if step <= search.xRange[1]:
         search.updatePos()
         search.updateValue()
     else:
