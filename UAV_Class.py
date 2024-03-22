@@ -9,7 +9,9 @@ class UAV:
         self.p = [0,0] # initial best postion of UAV is home position
         self.phi_p = phi_p
         self.phi_g = phi_g
-        self.fov = 0
+        self.fov = fov
+        self.angle = 0
+        self.d = 0
 
 class Environment:
 # Environment represents the scanable area where UAVs will search for target
@@ -27,8 +29,9 @@ class Environment:
     def initUAVs(self, numUAVs,fov):
         for i in range(numUAVs):
             angle = ((2*np.pi)/numUAVs)*i
-            v_i = [np.cos(angle),np.sin(angle)]
+            v_i = [5*np.cos(angle),5*np.sin(angle)]
             self.UAVs.append(UAV([0,0],v_i,0.8,0.2,0.2,fov))
+            self.UAVs[i].angle = angle
 
     def updatePos(self):
         for uav in self.UAVs:
@@ -38,20 +41,32 @@ class Environment:
 
     def updateVel(self):
         for uav in self.UAVs:
-            rP = np.random.uniform(0,1)
-            rG = np.random.uniform(0,1)
-            for i in range(len(uav.v)):
-                uav.v[i] = uav.w*uav.v[i] + uav.phi_p*rP*(uav.p[i]-uav.x[i]) + uav.phi_g*rG*(self.g[i]-uav.x[i]) 
+            if not self.targetFound:
+                if self.xRange[0] <= uav.x[0] <= self.xRange[1] and self.yRange[0] <= uav.x[1] <= self.yRange[1]:
+                    # if target not found and uav within env, proceed along initial path
+                    pass
+                else:
+                    # if target not found and uav outside env, return home and rotate initial path
+                    uav.angle = np.random.uniform(0, 2*np.pi)
+                    v_i = [5*np.cos(uav.angle),5*np.sin(uav.angle)]
+                    self.UAVs[self.UAVs.index(uav)] = UAV([0,0],v_i,0.8,0.2,0.2,uav.fov)
+            else:
+                # if target found, swarm uavs to target
+                rP = np.random.uniform(0,1)
+                rG = np.random.uniform(0,1)
+                for i in range(len(uav.v)):
+                    uav.v[i] = uav.w*uav.v[i] + uav.phi_p*rP*(uav.p[i]-uav.x[i]) + uav.phi_g*rG*(self.g[i]-uav.x[i]) 
         return self
 
     def updateValue(self):
         for uav in self.UAVs:
-            if not self.targetFound:
-                if dist(uav.x,self.target) <= uav.fov:
+            uav.d = dist(uav.x,self.target)
+            if self.targetFound == False:
+                if uav.d <= uav.fov:
                     self.targetFound = True
                     print('Target Found')
                     uav.p = uav.x
-                    uav.g = uav.p
+                    self.g = uav.p
             else:
                 if dist(uav.x,self.target) < dist(uav.p,self.target):
                     uav.p = uav.x
