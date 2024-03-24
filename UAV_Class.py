@@ -16,7 +16,9 @@ class UAV:
 class Environment:
 # Environment represents the scanable area where UAVs will search for target
 # Given height and width, will create a corresponding x and y range centered at the origin
-    def __init__(self,height,width):
+    def __init__(self,height,width,**kwargs):
+        if 'rdSeed' in kwargs:
+            np.random.seed(kwargs['rdSeed'])
         self.h = height
         self.w = width
         self.xRange = [-(width/2),(width/2)]
